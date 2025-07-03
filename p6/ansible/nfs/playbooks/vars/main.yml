@@ -1,0 +1,10 @@
+# DO NOT modify this file. Missing values are automatically configured
+#
+# Hostname of the NFS server
+nfs_server: oom2425-master
+
+# Cluster network
+cluster_network: 10.10.1.10/24
+
+# NFS exported directory
+nfs_dir: /share/nfs

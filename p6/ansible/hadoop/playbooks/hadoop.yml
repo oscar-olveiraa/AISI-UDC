@@ -1,0 +1,66 @@
+--- 
+- hosts: masters
+  become: yes
+
+  vars_files:
+    - vars/main.yml
+
+  tasks:
+    - name: Create dir for Hadoop on NFS share
+      ansible.builtin.file:
+        path: "{{ hadoop_dir }}"
+        state: directory
+        owner: hadoop
+        group: hadoop
+
+    - name: Download Hadoop package
+      ansible.builtin.get_url:
+        url: "{{ hadoop_url }}"
+        dest: "{{ download_dir }}/hadoop.tar.gz"
+        owner: hadoop
+        group: hadoop
+        force: false
+        checksum: "{{ hadoop_checksum }}"
+
+    - name: Untar Hadoop package
+      ansible.builtin.unarchive:
+        src: "{{ download_dir }}/hadoop.tar.gz"
+        dest: "{{ hadoop_dir }}"
+        creates: "{{ hadoop_dir }}/hadoop-{{ hadoop_version }}"
+        owner: hadoop
+        group: hadoop
+        mode: "0755"
+
+    - name: Copy Hadoop configuration using a loop
+      ansible.builtin.template:
+        src: "templates/{{ item }}"
+        dest: "{{ hadoop_conf_dir }}"
+        owner: hadoop
+        group: hadoop
+      loop:
+        - core-site.xml
+        - hdfs-site.xml
+        - mapred-site.xml
+        - yarn-site.xml
+        - workers
+
+    - name: Add env variables to hadoop-env.sh
+      ansible.builtin.blockinfile:
+        dest: "{{ hadoop_conf_dir }}/hadoop-env.sh"
+        block: |
+          export HDFS_NAMENODE_OPTS="-Xmx512m $HDFS_NAMENODE_OPTS"
+          export HDFS_SECONDARYNAMENODE_OPTS="-Xmx512m $HDFS_SECONDARYNAMENODE_OPTS"
+          export HDFS_DATANODE_OPTS="-Xmx512m $HDFS_DATANODE_OPTS"
+          export JAVA_HOME={{ java_home }}
+        backup: yes
+        state: present
+
+    - name: Add env variables to yarn-env.sh
+      ansible.builtin.blockinfile:
+        dest: "{{ hadoop_conf_dir }}/yarn-env.sh"
+        block: |
+          export YARN_RESOURCEMANAGER_OPTS="-Xmx512m $YARN_RESOURCEMANAGER_OPTS"
+          export YARN_NODEMANAGER_OPTS="-Xmx512m $YARN_NODEMANAGER_OPTS"
+        backup: yes
+        state: present
+

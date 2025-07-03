@@ -1,0 +1,3 @@
+db_user: wordpress_user
+db_user_passwd: 0123456
+db_name: wordpress_db

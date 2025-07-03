@@ -1,0 +1,33 @@
+# -*- mode: ruby -*-
+# vi: set ft=ruby :
+require_relative 'provisioning/vbox.rb'
+VBoxUtils.check_version('7.1.6')
+Vagrant.require_version ">= 2.4.3"
+
+Vagrant.configure("2") do |config|
+    config.vm.box = "oom2425/jammy64"
+    config.vm.hostname = "oom2425-ansible"
+    config.vm.network "forwarded_port", guest: 80, host: 8090
+    config.vm.synced_folder ".", "/vagrant", type: "virtualbox"
+
+    # Configure hostmanager and vbguest plugins
+    config.hostmanager.enabled = true
+    config.hostmanager.manage_host = true
+    config.hostmanager.manage_guest = true
+    config.vbguest.auto_update = false
+
+    config.vm.provider "virtualbox" do |vb|
+	vb.name = "AISI-P3-EJ4-#{config.vm.hostname}"
+	vb.cpus = 1
+	vb.memory = 1024
+	vb.gui = false
+    end
+
+    config.vm.provision "bootstrap", run: "once", type: "ansible_local" do |ansible|
+	ansible.install = "true"
+	ansible.install_mode = "pip3"
+	ansible.playbook = "provisioning/playbook.yml"
+	ansible.galaxy_role_file = "provisioning/requirements.yml"
+	ansible.galaxy_roles_path = "/home/vagrant/roles"
+    end
+end

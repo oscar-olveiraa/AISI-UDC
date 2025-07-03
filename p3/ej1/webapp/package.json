@@ -1,0 +1,11 @@
+{
+  "name": "nodejs-mysql",
+  "version": "0.0.1",
+  "main": "app.js",
+  "dependencies": {
+    "mysql": "^2.18.1",
+    "express": "4.x",
+    "pug": "3.0.3"
+  },
+  "engine": "node >= 10.x"
+}

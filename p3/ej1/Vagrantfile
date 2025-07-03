@@ -1,0 +1,69 @@
+# -*- mode: ruby -*-
+# vi: set ft=ruby :
+require_relative 'provisioning/vbox.rb'
+VBoxUtils.check_version('7.1.6')
+Vagrant.require_version ">= 2.4.3"
+
+STUDEN_PREFIX = "oom2425"
+# Ansible controller
+ansible_controller_hostname = "#{STUDEN_PREFIX}-ansible"
+# Web application server
+webapp_hostname = "#{STUDEN_PREFIX}-web"
+# Database server
+db_hostname = "#{STUDEN_PREFIX}-db"
+
+Vagrant.configure("2") do |config|
+  config.vm.box = "generic/rocky8"
+  config.vm.box_version = "4.3.12"
+  config.vm.box_check_update = false
+  config.vm.synced_folder ".", "/vagrant", type: "virtualbox"
+  
+  # Configure hostmanager and vbguest plugins
+  config.hostmanager.enabled = true
+  config.hostmanager.manage_host = true
+  config.hostmanager.manage_guest = true
+  config.vbguest.auto_update = false
+
+  # Ansible controller
+  config.vm.define "ansible", primary: true do |ansible|
+    ansible.vm.hostname = ansible_controller_hostname
+    ansible.vm.network "private_network", ip: "192.168.56.10"
+    ansible.vm.provision "shell", run: "once", path: "provisioning/ansible-controller.sh"
+
+    ansible.vm.provider "virtualbox" do |prov|
+	prov.name = "AISI-P3-EJ1-#{ansible.vm.hostname}"
+        prov.cpus = 1
+        prov.memory = 1024
+        prov.gui = false
+    end
+  end
+
+  # Web application server
+  config.vm.define "web" do |app|
+    app.vm.hostname = webapp_hostname
+    app.vm.network "forwarded_port", guest: 80, host: 8080
+    app.vm.network "private_network", ip: "192.168.56.11"
+    app.vm.provision "shell", run: "once", path: "provisioning/servers.sh"
+
+    app.vm.provider "virtualbox" do |prov|
+	prov.name = "AISI-P3-EJ1-#{app.vm.hostname}"
+        prov.cpus = 1
+        prov.memory = 1024
+        prov.gui = false
+    end
+  end
+
+  # Database server
+  config.vm.define "db" do |db|
+    db.vm.hostname = db_hostname
+    db.vm.network "private_network", ip: "192.168.56.12"
+    db.vm.provision "shell", run: "once", path: "provisioning/servers.sh"
+
+    db.vm.provider "virtualbox" do |prov|
+	prov.name = "AISI-P3-EJ1-#{db.vm.hostname}"
+        prov.cpus = 1
+        prov.memory = 1024
+        prov.gui = false
+    end
+  end
+end

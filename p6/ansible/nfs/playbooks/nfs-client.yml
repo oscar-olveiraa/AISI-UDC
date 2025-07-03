@@ -1,0 +1,15 @@
+---
+- hosts: workers
+  become: yes
+
+  vars_files:
+    - vars/main.yml
+
+  tasks: 
+    - name: Mount NFS share
+      ansible.builtin.mount:
+        fstype: nfs
+        path: "{{ nfs_dir }}"
+        src: "{{ nfs_server }}:{{ nfs_dir }}"
+        opts: rw,sync
+        state: mounted

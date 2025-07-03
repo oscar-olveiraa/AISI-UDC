@@ -1,0 +1,53 @@
+---
+- hosts: masters
+  become: yes
+
+  vars_files:
+    - vars/main.yml
+
+  tasks:
+    - name: Create dir for Spark on NFS share
+      ansible.builtin.file:
+        path: "{{ spark_dir }}"
+        state: directory
+        owner: hadoop
+        group: hadoop
+
+    - name: Download Spark package
+      ansible.builtin.get_url:
+        url: "{{ spark_url }}"
+        dest: "{{ download_dir }}/spark.tar.gz"
+        owner: hadoop
+        group: hadoop
+        force: false
+        checksum: "{{ spark_checksum }}"
+
+    - name: Untar Spark package
+      ansible.builtin.unarchive:
+        src: "{{ download_dir }}/spark.tar.gz"
+        dest: "{{ spark_dir }}"
+        creates: "{{ spark_dir }}/spark-{{ spark_version }}-bin-hadoop3"
+        owner: hadoop
+        group: hadoop
+        mode: "0755"
+
+    - name: Copy Spark configuration using loop
+      ansible.builtin.template:
+        src: "templates/{{ item }}"
+        dest: "{{ spark_conf_dir }}/{{ item }}"
+        owner: hadoop
+        group: hadoop
+      loop:
+        - spark-defaults.conf
+        - workers
+
+    - name: Add env vars to .profile
+      ansible.builtin.blockinfile:
+        dest: /home/hadoop/.profile
+        marker: "# {mark} Added env vars for Spark"
+        block: |
+          export SPARK_HOME={{ spark_home }}
+          export PATH=$PATH:$SPARK_HOME/bin:$SPARK_HOME/sbin
+        backup: yes
+        state: present
+

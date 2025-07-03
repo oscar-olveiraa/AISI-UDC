@@ -1,0 +1,47 @@
+---
+- hosts: masters
+  become: yes
+
+  tasks:
+   - name: Add Helm repo for K8s dashboard
+     become: false
+     ansible.builtin.shell: sleep 3 && helm repo add kubernetes-dashboard https://kubernetes.github.io/dashboard/
+     
+   - name: Install K8s dashboard
+     become: false
+     ansible.builtin.shell: sleep 5 && helm upgrade --install kubernetes-dashboard kubernetes-dashboard/kubernetes-dashboard --create-namespace --namespace kubernetes-dashboard
+
+   - name: Copy manifest
+     ansible.builtin.copy:
+       src: /vagrant/provisioning/dashboard-adminuser.yml
+       dest: /tmp/dashboard-adminuser.yml
+
+   - name: Configure dashboard
+     become: false
+     ansible.builtin.shell: sleep 5 && kubectl apply -f /tmp/dashboard-adminuser.yml
+
+   - name: Generate token
+     become: false
+     ansible.builtin.shell: kubectl get secret admin-user -n kubernetes-dashboard -o jsonpath={".data.token"} | base64 -d
+     register: dashboard_token
+
+   - name: Print token
+     ansible.builtin.debug:
+       var: dashboard_token
+
+   - name: Remove token
+     ansible.builtin.file:
+       path: /vagrant/provisioning/token
+       state: absent
+
+   - name: Copy token to local file
+     local_action: copy content="{{ dashboard_token.stdout_lines[0] }}" dest="/vagrant/provisioning/token"
+
+   - name: Port-forwarding
+     become: false
+     ansible.builtin.script: sleep 5 && /vagrant/provisioning/dashboard.sh
+     register: output
+   
+   - name: Print status
+     ansible.builtin.debug: 
+       var: output.stdout

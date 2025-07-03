@@ -1,0 +1,34 @@
+---
+- hosts: masters
+  become: yes
+
+  vars_files:
+    - vars/main.yml
+
+  vars:
+    list_of_packages:
+      - nfs-kernel-server
+        
+  tasks:
+    - name: Install NFS server packages
+      ansible.builtin.package:
+        name: "{{ list_of_packages }}"
+        state: latest
+ 
+    - name: Ensure NFS server is started and enabled at boot
+      ansible.builtin.service:
+        name: nfs-kernel-server
+        state: started
+        enabled: yes
+  
+    - name: Copy exports.j2 template to /etc/exports
+      ansible.builtin.template:
+        src: templates/exports.j2
+        dest: /etc/exports
+      notify: Restart NFS server
+        
+  handlers:
+    - name: Restart NFS server
+      ansible.builtin.service:
+        name: nfs-kernel-server
+        state: restarted

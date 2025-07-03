@@ -1,0 +1,25 @@
+---
+- hosts: cluster
+  become: yes
+
+  vars_files:
+    - vars/main.yml
+
+  vars:
+    list_of_packages:
+      - nfs-common
+      - libnfs-utils
+
+  tasks:
+    - name: Install common NFS packages
+      ansible.builtin.package:
+        name: "{{ list_of_packages }}"
+        state: present
+
+    - name: Create NFS directory
+      ansible.builtin.file:
+        path: "{{ nfs_dir }}"
+        state: directory 
+        owner: root
+        group: root 
+        mode: '1777'

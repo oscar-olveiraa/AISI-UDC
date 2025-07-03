@@ -1,0 +1,72 @@
+# Complete task definition
+- name: Install Docker SDK for Python
+  ansible.builtin.package:
+      name: python3-docker
+      state: present
+      use: auto
+
+- name: Copy docker directory
+  ansible.builtin.copy:
+    src: docker
+    dest: /home/vagrant
+
+- name: Copy app.py.j2 template
+  ansible.builtin.template:
+    src: templates/app.py.j2
+    dest: /home/vagrant/docker/webapp/src/app.py
+ 
+- name: Copy nginx.conf template
+  ansible.builtin.template:
+    src: templates/nginx.conf.j2
+    dest: /home/vagrant/docker/nginx/nginx.conf
+
+- name: Build Docker images from Dockerfiles
+  community.docker.docker_image:
+    name: "{{ item.name }}"
+    source: build
+    build:
+      path: "/home/vagrant/docker/{{ item.directory }}"
+      pull: yes
+    state: present
+    force_source: yes
+  loop:
+    - { name: "{{ webapp_img }}", directory: webapp }
+    - { name: "{{ db_img }}", directory: db }
+    - { name: "{{ nginx_img }}", directory: nginx }
+
+- name: Create network
+  community.docker.docker_network:
+    driver: bridge
+    name: "{{ container_network }}"
+
+- name: Run MySQL container
+  community.docker.docker_container:
+    image: "{{ db_img }}"
+    name: "{{ db_container }}"
+    state: started
+    restart: yes
+    networks:
+      - name: "{{ container_network }}"
+    networks_cli_compatible: true
+
+- name: Run Flask container
+  community.docker.docker_container:
+    image: "{{ webapp_img }}"
+    name: "{{ webapp_container }}"
+    state: started
+    restart: yes
+    networks:
+      - name: "{{ container_network }}"
+    networks_cli_compatible: true
+
+- name: Run Nginx container
+  community.docker.docker_container:
+    image: "{{ nginx_img }}"
+    name: "{{ nginx_container }}"
+    state: started
+    restart: yes
+    published_ports: "80:80"
+    networks:
+      - name: "{{ container_network }}"
+    networks_cli_compatible: true
+

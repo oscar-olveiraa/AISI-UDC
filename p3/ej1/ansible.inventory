@@ -1,0 +1,10 @@
+# Web application server
+[web]
+oom2425-web
+# Database server
+[db]
+oom2425-db
+# Group 'servers' with web and db
+[servers:children]
+web
+db

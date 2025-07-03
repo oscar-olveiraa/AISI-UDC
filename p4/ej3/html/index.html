@@ -1,0 +1,31 @@
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>GEI AISI</title>
+    <script type="text/javascript">
+	function getName() {
+		var name = "Óscar Olveira Miniño";
+		document.getElementById("myName").innerHTML = name;
+	}
+        function getURL() {
+        	document.write(window.location.href);
+        }
+	function getTIME() {
+		document.getElementById("current_date").innerHTML = Date();
+    	}
+    </script>
+</head>
+<body onload="getName()">
+	<div style="width:600px;height:370px;border:2px solid #000;text-align: center;">
+	<strong>
+	<p><img src="https://gac.udc.es/~rober/aisi/udc.png" style="max-width: 300px; width: auto;"></p>
+	<h3><u>GEI AISI: 2024/2025</u></h3>
+	    <p><img src="https://gac.udc.es/~rober/aisi/nginx.png" style="max-width: 50px; height: auto;">
+	    <p><u>Nginx Web Server (K8s cluster)</u></p>
+	    <p>Página web de <span id="myName"></span></p>
+	    <p><script>getURL();</script></p>
+	    <p><div id="current_date"><script>getTIME();</script></p>
+	</strong>
+	</div>
+</body>
+</html>

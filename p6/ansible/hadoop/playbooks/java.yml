@@ -1,0 +1,23 @@
+---
+- hosts: cluster
+  become: yes
+
+  vars_files:
+    - vars/main.yml
+    
+  tasks:
+     - name: Add an apt signing key
+       ansible.builtin.apt_key:
+         url: "{{ java_repo_key_url }}"
+         keyring: "{{ java_repo_key }}"
+         state: present
+
+     - name: Add apt repository for Temurin JDK
+       ansible.builtin.apt_repository:
+         repo: deb [arch=amd64 signed-by={{ java_repo_key }}] {{ java_repo_url }} bookworm main
+         state: present
+        
+     - name: Install JDK 11
+       ansible.builtin.package:
+         name: temurin-11-jdk
+         state: latest

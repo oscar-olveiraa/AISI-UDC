@@ -1,0 +1,38 @@
+<configuration>
+  <property>
+    <name>mapreduce.framework.name</name>
+    <value>yarn</value>
+  </property>
+  <property>
+    <name>yarn.app.mapreduce.am.env</name>
+    <value>HADOOP_MAPRED_HOME=${HADOOP_HOME}</value>
+  </property>
+  <property>
+    <name>mapreduce.map.env</name>
+    <value>HADOOP_MAPRED_HOME=${HADOOP_HOME}</value>
+  </property>
+  <property>
+    <name>mapreduce.reduce.env</name>
+    <value>HADOOP_MAPRED_HOME=${HADOOP_HOME}</value>
+  </property>
+  <property>
+    <name>mapreduce.map.memory.mb</name>
+    <value>512</value>
+  </property>
+  <property>
+    <name>mapreduce.reduce.memory.mb</name>
+    <value>512</value>
+  </property>
+  <property>
+    <name>mapreduce.cluster.local.dir</name>
+    <value>/data/disk0/{{ hadoop_data_dir }}/mapred,/data/disk1/{{ hadoop_data_dir }}/mapred</value>
+  </property>
+  <property>
+    <name>mapreduce.map.speculative</name>
+    <value>false</value>
+  </property>
+  <property>
+    <name>mapreduce.reduce.speculative</name>
+    <value>false</value>
+  </property>
+</configuration>

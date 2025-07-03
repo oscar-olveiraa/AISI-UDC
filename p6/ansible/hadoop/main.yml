@@ -1,0 +1,17 @@
+---
+- hosts: cluster
+  become: yes
+
+  tasks:
+  - name: Update Package Cache
+    ansible.builtin.apt:
+      update_cache: yes
+
+- name: Java installation
+  ansible.builtin.import_playbook: playbooks/java.yml
+
+- name: Create user and group for Hadoop
+  ansible.builtin.import_playbook: playbooks/hadoop-user.yml
+
+- name: Hadoop installation and setup
+  ansible.builtin.import_playbook: playbooks/hadoop.yml

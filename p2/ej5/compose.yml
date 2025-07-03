@@ -1,0 +1,27 @@
+services:
+  redis:
+    image: oom2425-redis-multi
+    volumes:
+        - type: volume
+          source: redis-vol
+          target: /data
+
+  webapp:
+    image: oom2425-web
+    volumes:
+        - type: bind
+          source: /vagrant/ej4/src
+          target: /src
+    ports:
+        - "80:5000"
+    links:
+       - "redis:redis-server"
+    healthcheck:
+        test: ["CMD", "curl", "--fail", "http://127.0.0.1:5000"]
+        interval: 15s
+    depends_on:
+      - "redis"
+
+volumes:
+  redis-vol:
+    external: true

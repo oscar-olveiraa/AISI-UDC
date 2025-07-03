@@ -1,0 +1,24 @@
+# -*- mode: ruby -*-
+# vi: set ft=ruby :
+require_relative 'provisioning/vbox.rb'
+VBoxUtils.check_version('7.1.6')
+Vagrant.require_version ">= 2.4.3"
+
+Vagrant.configure("2") do |config|
+    config.vm.box = "oom2425/jammy64"
+    config.vm.hostname = "oom2425-nginx"
+    config.vm.network "forwarded_port", guest: 80, host: 9090
+
+    # Configure hostmanager and vbguest plugins
+    config.hostmanager.enabled = true
+    config.hostmanager.manage_host = true
+    config.hostmanager.manage_guest = true
+    config.vbguest.auto_update = false
+
+    config.vm.provider "virtualbox" do |vb|
+	vb.name = "AISI-P1-#{config.vm.hostname}"
+	vb.cpus = 2
+	vb.memory = 2048
+	vb.gui = false
+    end
+end

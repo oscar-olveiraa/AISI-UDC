@@ -1,0 +1,13 @@
+---
+- hosts: workers
+  become: yes
+
+  tasks:
+    - name: Join the node to cluster
+      ansible.builtin.shell: sh /vagrant/provisioning/join-command.sh
+      register: kubernetes_joined_or_not
+
+    - name: Print join command
+      ansible.builtin.debug:
+        var: kubernetes_joined_or_not
+

@@ -1,0 +1,9 @@
+[masters]
+oom2425-master
+[workers]
+oom2425-worker1
+oom2425-worker2
+# Group 'cluster' with all nodes
+[cluster:children]
+masters
+workers

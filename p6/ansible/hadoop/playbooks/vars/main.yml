@@ -1,0 +1,61 @@
+# DO NOT modify this file. Missing values are automatically configured
+#
+# Hostname of the master node
+master_hostname: oom2425-master
+
+# Worker settings
+worker_cores: 2
+num_workers: 2
+
+# The directory into which Hadoop will stored its data
+hadoop_data_dir: hadoop-data
+
+# Encrypted password for hadoop user
+hadoop_user_passwd: $y$j9T$gUSfSDnzBPbSlUuraKs6U/$LjnAbHUs1yIj7EMCFzNgmF2DBQDA6BK04pq2o0YK1e/
+
+# The directory into which Hadoop will be downloaded
+download_dir: /tmp
+
+# The directory into which Hadoop will be installed on the master node
+hadoop_dir: /share/nfs/hadoop
+
+# Hadoop version
+hadoop_version: 3.4.1
+
+# URL for downloading Hadoop distribution
+hadoop_url: "https://ftp.cixug.es/apache/hadoop/common/hadoop-{{ hadoop_version }}/hadoop-{{ hadoop_version }}-lean.tar.gz"
+
+hadoop_checksum: sha512:822cb1531333847e740d942cacf24295a588255786afe11f11c8ff9695be1caae425ddbafd4fda8b0f1fce88336efa05f16d5425659ab225075864ab6b8702bf
+
+# Hadoop configuration directory
+hadoop_conf_dir: "{{ hadoop_dir }}/hadoop-{{ hadoop_version }}/etc/hadoop"
+
+# JAVA_HOME
+java_home: /usr/lib/jvm/temurin-11-jdk-amd64
+
+java_repo_url: https://packages.adoptium.net/artifactory/deb
+
+java_repo_key_url: https://packages.adoptium.net/artifactory/api/gpg/key/public
+
+java_repo_key: /etc/apt/trusted.gpg.d/adoptium.gpg
+
+# The directory into which spark will stored its data
+spark_data_dir: spark-data
+
+# The directory into which Spark will be installed on the master node
+spark_dir: /share/nfs/spark
+
+# Spark version
+spark_version: 3.5.5
+
+# URL for downloading Spark distribution
+spark_url: "https://ftp.cixug.es/apache/spark/spark-{{ spark_version }}/spark-{{ spark_version }}-bin-hadoop3.tgz"
+
+spark_checksum: sha512:ec5ff678136b1ff981e396d1f7b5dfbf399439c5cb853917e8c954723194857607494a89b7e205fce988ec48b1590b5caeae3b18e1b5db1370c0522b256ff376
+
+# Spark home
+spark_home: "{{ spark_dir }}/spark-{{ spark_version }}-bin-hadoop3"
+
+# Spark configuration directory
+spark_conf_dir: "{{ spark_home }}/conf"
+

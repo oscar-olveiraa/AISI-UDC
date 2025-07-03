@@ -1,0 +1,47 @@
+# Complete task definition
+- name: Install apache server
+  ansible.builtin.package:
+    name: apache2
+    state: present
+    use: auto 
+
+- name: Enable rewrite Apache module
+  community.general.apache2_module:
+    state: present
+    name: rewrite
+  notify: Restart apache
+
+- name: Disable Apache default site
+  ansible.builtin.file:
+    path: /etc/apache2/sites-enabled/{{ default_site }}
+    state: absent
+  notify: Restart apache
+  
+
+- name: Create document root
+  ansible.builtin.file:
+    path: /var/www/{{ http_host }}
+    state: directory
+    mode: '0775'
+
+- name: Copy index.html template page
+  ansible.builtin.template:
+    src: templates/index.html.j2
+    dest: /var/www/{{ http_host }}/index.html
+  notify: Restart apache
+  
+
+- name: Setup Apache virtual host
+  ansible.builtin.template:
+    src: templates/apache.conf.j2
+    dest: /etc/apache2/sites-enabled/{{ http_conf }}
+  notify: Restart apache
+
+
+- name: Copy static files
+  ansible.builtin.copy:
+    src: files/{{ item }}
+    dest: /var/www/{{ http_host }}/img/
+  loop:
+    - apache.png
+    - udc.png

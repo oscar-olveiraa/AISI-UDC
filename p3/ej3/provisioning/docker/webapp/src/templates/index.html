@@ -1,0 +1,29 @@
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>GEI AISI</title>
+    <script type="text/javascript">
+        function getURL() {
+        	document.write(window.location.href);
+        }
+	function getTIME() {
+		document.getElementById("current_date").innerHTML = Date();
+    	}
+    </script>
+</head>
+<body onload="getName()">
+	<div style="width:600px;height:{{height}};border:2px solid #000;text-align: center;">
+	<strong>
+	<p><img src="{{url_for('static', filename='udc.png')}}" style="max-width: 300px; width: auto;"></p>
+	<h3><u>GEI AISI: {{course}}</u></h3>
+	    <p><img src="{{url_for('static', filename='flask.png')}}" style="max-width: 200px; height: auto;">
+	    <p><u>Nginx+Flask+MySQL WebApp (Docker)</u></p>
+	    <p>Página web de {{student_name}}</span></p>
+	    <p><script>getURL();</script></p>
+	    <p><div id="current_date"><script>getTIME();</script></p>
+	    <p>MySQL URI: {{db_uri}}</p>
+	    <p>MySQL connection status from user {{user}}: <span style="color: {{color}};">{{result}}</span></p>
+	</strong>
+	</div>
+</body>
+</html>

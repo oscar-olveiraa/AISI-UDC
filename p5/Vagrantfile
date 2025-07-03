@@ -1,0 +1,62 @@
+# -*- mode: ruby -*-
+# vi: set ft=ruby :
+require_relative 'provisioning/vbox.rb'
+VBoxUtils.check_version('7.1.6')
+Vagrant.require_version ">= 2.4.3"
+
+CLIENT_HOSTNAME = "oom2425-client"
+# DO NOT change the OMV hostname
+OMV_HOSTNAME = "omv-server"
+
+Vagrant.configure("2") do |config|
+  # Configure hostmanager and vbguest plugins
+  config.hostmanager.enabled = true
+  config.hostmanager.manage_host = true
+  config.hostmanager.manage_guest = true
+  config.vbguest.auto_update = false
+
+  config.vm.define "omv-server", primary: true do |omv|
+    omv.vm.box = "rreye/omv7"
+    omv.vm.box_version = "1.1"
+    omv.vm.box_check_update = false
+    omv.vm.hostname = OMV_HOSTNAME
+    omv.vm.network "forwarded_port", guest: 80, host: 9090
+    omv.vm.network "private_network", ip: "192.172.16.25", virtualbox__intnet: "omv"
+    omv.vm.synced_folder ".", "/vagrant", type: "virtualbox"
+
+    omv.vm.provider "virtualbox" do |prov|
+      prov.gui = false
+      prov.name = "AISI-P5-OMV"
+      prov.cpus = 2
+      prov.memory = 2048
+
+      # Add disks
+      for i in 0..2 do
+        filename = "./disks/disk#{i}.vdi"
+        unless File.exist?(filename)
+          prov.customize ["createmedium", "disk", "--filename", filename, "--format", "VDI", "--size", 10 * 1024]
+        end
+        prov.customize ["storageattach", :id, "--storagectl","SATA Controller", "--port", i+1, "--device", 0, "--type", "hdd", "--medium", filename]
+      end
+    end
+  end
+
+  config.vm.define "client" do |client|
+    client.vm.box = "rreye/jammy64-gui"
+    client.vm.box_version = "20250224"
+    client.vm.box_check_update = false
+    client.vm.hostname = CLIENT_HOSTNAME
+    client.vm.network "private_network", ip: "192.172.16.30", virtualbox__intnet: "omv"
+    client.vm.synced_folder ".", "/vagrant", type: "virtualbox"
+
+    client.vm.provider "virtualbox" do |prov|
+      prov.gui = true
+      prov.name = "AISI-P5-Client"
+      prov.cpus = 2
+      prov.memory = 2048
+      prov.customize ["modifyvm", :id, "--vram", "32"]
+      prov.customize ["modifyvm", :id, "--graphicscontroller", "vmsvga"]
+      prov.customize ["modifyvm", :id, "--uart1", "off"]
+    end
+  end
+end

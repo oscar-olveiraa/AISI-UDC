@@ -1,0 +1,5 @@
+# Modify variables http_user, http_host y http_conf accordingly
+http_user: "Óscar Olveira Miniño"
+http_host: "oom2425-vhost"
+http_conf: "oom2425.conf"
+default_site: 000-default.conf

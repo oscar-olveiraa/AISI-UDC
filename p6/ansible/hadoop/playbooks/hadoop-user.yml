@@ -1,0 +1,62 @@
+--- 
+- hosts: cluster
+  become: yes
+
+  vars_files:
+    - vars/main.yml
+
+  tasks:
+    - name: Add group hadoop
+      ansible.builtin.group:
+        name: hadoop
+        system: false
+        state: present
+
+    - name: Add user hadoop
+      ansible.builtin.user:
+        name: hadoop
+        group: hadoop
+        home: /home/hadoop
+        createhome: yes
+        password: "{{ hadoop_user_passwd }}"
+        shell: /bin/bash
+        generate_ssh_key: true
+        ssh_key_bits: 2048
+        ssh_key_type: rsa
+        state: present
+        force: yes
+
+    - name: Add env vars to .profile
+      ansible.builtin.blockinfile:
+        dest: /home/hadoop/.profile
+        marker: "# {mark} Added env vars for Hadoop"
+        block: |
+          export HADOOP_HOME={{ hadoop_dir }}/hadoop-{{ hadoop_version }}
+          export HADOOP_MAPRED_HOME=$HADOOP_HOME
+          export HADOOP_CONF_DIR={{ hadoop_conf_dir }}
+          export PATH=$PATH:$HADOOP_HOME/bin:$HADOOP_HOME/sbin
+          export JAVA_HOME={{ java_home }}
+        backup: yes
+        state: present
+
+    - name: Copy SSH key
+      ansible.builtin.copy:
+        src: /home/hadoop/.ssh/id_rsa.pub
+        dest: /tmp/id_rsa.pub
+        remote_src: yes
+
+    - name: Set authorized key for hadoop user
+      ansible.builtin.authorized_key:
+        user: hadoop
+        state: present
+        key: "{{ item }}"
+      with_file:
+        - /tmp/id_rsa.pub
+
+    - name: Remove SSH keys
+      ansible.builtin.file:
+        path: "{{ item }}"
+        state: absent
+      loop:
+        - /tmp/id_rsa
+        - /tmp/id_rsa.pub

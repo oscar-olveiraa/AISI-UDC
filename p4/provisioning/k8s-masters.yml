@@ -1,0 +1,58 @@
+---
+- hosts: masters
+  become: yes
+
+  tasks:
+    - name: Initialize Kubernetes cluster
+      ansible.builtin.shell: kubeadm init --apiserver-advertise-address="{{ master_ip }}" --service-cidr="{{ service_network }}" --pod-network-cidr="{{ pod_network }}" --upload-certs --ignore-preflight-errors=NumCPU
+      
+    - name: Create .kube directory
+      ansible.builtin.file:
+        path: /home/vagrant/.kube
+        state: directory
+        mode: 0755
+
+    - name: Copy admin.conf to user's config
+      ansible.builtin.copy:
+        src: /etc/kubernetes/admin.conf
+        dest: /home/vagrant/.kube/config
+        remote_src: yes
+        owner: vagrant
+        group: vagrant
+        mode: 0600
+      tags: tag1
+      
+    - name: Install Calico
+      become: false
+      ansible.builtin.shell: kubectl apply -f https://raw.githubusercontent.com/projectcalico/calico/v3.27.0/manifests/calico.yaml
+    
+    - name: Remove join command script
+      ansible.builtin.file:
+        path: /vagrant/provisioning/join-command.sh
+        state: absent
+  
+    - name: Generate join command
+      ansible.builtin.shell: sleep 5 && kubeadm token create --print-join-command
+      register: kubernetes_join_command
+
+    - name: Print join command
+      ansible.builtin.debug:
+        var: kubernetes_join_command
+
+    - name: Copy join command to local file
+      local_action: copy content="{{ kubernetes_join_command.stdout_lines[0] }}" dest="/vagrant/provisioning/join-command.sh"
+
+    - name: Add an apt signing key for Helm
+      ansible.builtin.apt_key:
+        url: https://baltocdn.com/helm/signing.asc
+        state: present
+         
+    - name: Add apt repository for Helm
+      ansible.builtin.apt_repository:
+        repo: deb [arch=amd64] https://baltocdn.com/helm/stable/debian/ all main
+        state: present
+
+    - name: Install Helm
+      ansible.builtin.package:
+        name: helm
+        state: present

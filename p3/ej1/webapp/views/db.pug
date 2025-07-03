@@ -1,0 +1,32 @@
+doctype html
+html
+  head
+    meta(charset="UTF-8")
+    title GEI AISI
+    script(type="text/javascript").
+      function getURL() {
+        document.write(window.location.href);
+      }
+      function getTIME() {
+        document.getElementById("current_date").innerHTML = Date();
+      }
+  body()
+    div(style=`width:600px; height:${height}; border:2px solid #000; text-align: center;`)
+      strong
+        p
+          img(src="/udc.png", style="max-width: 300px; width: auto;")
+        h3
+          u GEI AISI: #{courseId}
+        p
+          img(src="/expressJS.png", style="max-width: 200px; height: auto;")
+        p
+          u Node.js+Express+MariaDB WebApp (Ansible)
+        p Página web de #{userId}
+        p
+          script getURL()
+        p
+          div#current_date
+            script getTIME()
+        p MariaDB URI: #{dburi}
+        p MariaDB connection status from user #{username}:
+          span(style=`color: ${color};`) #{result}

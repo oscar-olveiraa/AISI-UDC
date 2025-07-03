@@ -1,0 +1,7 @@
+---
+- hosts: cluster
+
+- ansible.builtin.import_playbook: k8s-common.yml
+- ansible.builtin.import_playbook: k8s-masters.yml  
+- ansible.builtin.import_playbook: k8s-workers.yml
+- ansible.builtin.import_playbook: k8s-dashboard.yml

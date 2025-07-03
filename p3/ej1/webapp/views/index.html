@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>GEI AISI</title>
+  <script type="text/javascript">
+	  function getName() {
+		  var name = "Óscar Olveira Miniño ";
+		  var course = "2024/2025";
+		  document.getElementById("myName").innerHTML = name;
+		  document.getElementById("userId").value = name;
+		  document.getElementById("currentCourse").innerHTML = course;
+		  document.getElementById("courseId").value = course;
+	  }
+    function getURL() {
+   	  document.write(window.location.href);
+    }
+	  function getTIME() {
+		  document.getElementById("current_date").innerHTML = Date();
+    }
+  </script>
+</head>
+<body onload="getName()">
+  <div style="width:600px;height:650px;border:2px solid #000;text-align: center;">
+    <strong>
+    <p><img src="/udc.png" style="max-width: 300px; width: auto;"></p>
+    <h3><u>GEI AISI: <span id="currentCourse"></u></h3>
+	  <p><img src="/expressJS.png" style="max-width: 200px; height: auto;">
+	  <p><u>Node.js+Express+MariaDB WebApp (Ansible)</u></p>
+    <p>Página web de <span id="myName"></span></p>
+	  <p><script>getURL();</script></p>
+	  <p><div id="current_date"><script>getTIME();</script></p>
+    </strong>
+    <h3>Database connection</h3>
+    <form action="/db" method="POST">
+        <label for="username">User name:</label>
+        <input type="text" id="username" name="username" required>
+        <br><br>
+        <label for="password">Password:</label>
+        <input type="password" id="password" name="password" required>
+        <br><br>
+        <label for="hostname">DB hostname:</label>
+        <input type="text" id="hostname" name="hostname" required>
+        <br><br>
+        <label for="database">DB name:</label>
+        <input type="text" id="database" name="database" required>
+        <input type="hidden" id="userId" name="userId">
+        <input type="hidden" id="courseId" name="courseId">
+        <br><br>
+        <button type="submit">Connect</button>
+    </form>
+    <p>
+    </div>
+</body>
+</html>

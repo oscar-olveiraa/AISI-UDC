@@ -1,0 +1,29 @@
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>GEI AISI</title>
+    <script type="text/javascript">
+        function getURL() {
+        	document.write(window.location.href);
+        }
+	function getTIME() {
+		document.getElementById("current_date").innerHTML = Date();
+    	}
+    </script>
+</head>
+<body>
+    <body>
+	<div style="width:600px;height:350px;border:2px solid #000;text-align: center;">
+	<strong>
+	<p><img src="img/udc.png" style="max-width: 300px; width: auto;"></p>
+	<h3><u>GEI AISI: 2024/2025</u></h3>
+	    <p><img src="img/apache.png" style="max-width: 150px; height: auto;">
+	    <p><u>Apache Web Server (Ansible)</u></p>
+	    <p>Página web de {{ http_user }}</p>
+	    <p>Virtual host: {{ http_host }}</p>
+	    <p><script>getURL();</script></p>
+	    <p><div id="current_date"><script>getTIME();</script></p>
+	</strong>
+	</div>
+</body>
+</html>

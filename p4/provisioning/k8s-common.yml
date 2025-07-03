@@ -1,0 +1,161 @@
+---
+- hosts: cluster
+  become: yes
+
+  vars:
+    list_of_packages: 
+      - ntp
+      - vim
+      - nano
+      - sshpass
+      - unzip
+      - python3-apt
+      - dnsutils
+      - dos2unix
+      - whois
+      - curl
+      - lynx
+      - gpg
+      - apt-transport-https
+      - ca-certificates
+      - gnupg-agent
+      - software-properties-common
+      - docker-ce 
+      - docker-ce-cli 
+      - containerd.io
+
+  tasks:
+    - name: Add master IP to known_hosts file
+      ansible.builtin.known_hosts:
+        path: /home/vagrant/.ssh/ssh_known_hosts
+        name: "{{ master_hostname }}"
+        key: "{{ lookup('pipe', 'ssh-keyscan -t rsa {{ master_hostname }}') }}"
+
+    - name: Add an apt signing key for Docker
+      ansible.builtin.apt_key:
+        url: https://download.docker.com/linux/ubuntu/gpg
+        state: present
+        keyring: /etc/apt/keyrings/docker.gpg
+
+    - name: Add apt repository for Docker stable version
+      ansible.builtin.apt_repository:
+        repo: deb [arch=amd64 signed-by=/etc/apt/keyrings/docker.gpg] https://download.docker.com/linux/ubuntu jammy stable
+        state: present
+
+    - name: Install Docker and other dependencies
+      ansible.builtin.apt:
+        name: "{{ list_of_packages }}"
+        state: latest
+        update_cache: true
+      notify:
+        - restart docker
+
+    - name: Copy containerd module file
+      ansible.builtin.copy:
+        src: containerd.conf
+        dest: /etc/modules-load.d/
+        owner: root
+        group: root
+
+    - name: Configure ip forwarding
+      ansible.builtin.copy:
+        src: 20-ip-forwarding.conf
+        dest: /etc/sysctl.d/
+        owner: root
+        group: root
+
+    - name: Add br_netfilter module
+      community.general.modprobe:
+        name: br_netfilter
+        state: present
+        persistent: present
+
+    - name: Apply kernel settings
+      ansible.builtin.shell: sysctl --system
+
+    - name: Remove default containerd config file
+      ansible.builtin.file:
+        path: /etc/containerd/config.toml
+        state: absent
+      notify:
+        - restart containerd
+
+    - name: Copy containerd config file
+      ansible.builtin.copy:
+        src: config.toml
+        dest: /etc/containerd/config.toml
+        owner: root
+        group: root
+      notify:
+        - restart containerd
+
+    - name: Add vagrant user to docker group
+      ansible.builtin.user:
+        name: vagrant
+        group: docker
+      notify:
+        - restart docker
+    
+    - name: Remove swapfile from /etc/fstab
+      ansible.builtin.mount:
+        name: "{{ item }}"
+        fstype: swap
+        state: absent
+      loop:
+        - swap
+        - none
+
+    - name: Disable swap
+      ansible.builtin.shell: swapoff -a
+      when: ansible_swaptotal_mb > 0
+      
+    - name: Add an apt signing key for Kubernetes
+      ansible.builtin.apt_key:
+        url: https://pkgs.k8s.io/core:/stable:/v1.29/deb/Release.key
+        state: present
+        keyring: /etc/apt/keyrings/kubernetes-apt-keyring.gpg
+
+    - name: Adding apt repository for Kubernetes
+      ansible.builtin.apt_repository:
+        repo: "deb [signed-by=/etc/apt/keyrings/kubernetes-apt-keyring.gpg] https://pkgs.k8s.io/core:/stable:/v1.29/deb/ /"
+        state: present
+        filename: kubernetes
+
+    - name: Install Kubernetes binaries
+      ansible.builtin.apt: 
+        name: "{{ packages }}"
+        state: latest
+        update_cache: true
+      vars:
+        packages:
+          - kubelet 
+          - kubeadm 
+          - kubectl
+
+    - name: Reset Kubernetes cluster
+      ansible.builtin.shell: kubeadm reset -f
+
+    - name: Remove CNI configuration
+      ansible.builtin.file:
+        path: /etc/cni/net.d/10-flannel.conflist
+        state: absent
+
+    - name: Remove Kubernetes config file
+      ansible.builtin.file:
+        path: /home/vagrant/.kube/config
+        state: absent
+
+    - name: Remove Kubernetes directory
+      ansible.builtin.file:
+        path: /etc/kubernetes
+        state: absent
+        
+    - name: Reset iptables
+      shell: iptables -F && iptables -X && iptables -t nat -F && iptables -t nat -X && iptables -t mangle -F && iptables -t mangle -X
+
+  handlers:
+    - name: restart docker
+      ansible.builtin.service: name=docker state=restarted
+
+    - name: restart containerd
+      ansible.builtin.service: name=containerd state=restarted
